@@ -12,6 +12,8 @@ import java.util.Random;
  */
 public class Philosopher implements Runnable, ObservablePhilosopher {
 
+    private long philID;
+
     private String name;
 
     private final int finalHunger;
@@ -35,8 +37,9 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
      * @param isRandom <code>true</code> if the starting state should be random.
      *                 <code>false</code> if the starting state should be set.
      */
-    public Philosopher(String name, int amountOfFood, boolean isRandom) {
+    public Philosopher(long philID,String name, int amountOfFood, boolean isRandom) {
         checkString(name, "name");
+        this.philID = philID;
         this.name = name;
         random = new Random();
         if (isRandom){
@@ -45,9 +48,26 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
             this.hunger = 5;
         }
         this.finalHunger = amountOfFood;
-        state = State.THINKING;
+        setState(State.THINKING);
         amountOfTimesEating = 0;
         observers = new LinkedList<>();
+    }
+
+    /**
+     * Sets the state to a new value.
+     * @param state the new state.
+     */
+    private void setState(State state){
+        this.state = state;
+        alertObserverAboutStateChange();
+    }
+
+    /**
+     * Gets the philosopher's id.
+     * @return the id.
+     */
+    public long getPhilID(){
+        return philID;
     }
 
     /**
@@ -58,14 +78,14 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
         checkIfObjectIsNull(food, "food");
         System.out.println(name + " got " + food.getFoodName() + " " + LocalTime.now());
         this.food = food;
-        this.state = State.EATING;
+        setState(State.EATING);
     }
 
     /**
      * Represents a method that starts the philosopher. Switches between eating, thinking and hungry.
      */
     public void startPhilosopher(){
-        while(hunger > 0){
+        while(hunger > 0 && !Thread.interrupted()){
             switch (state){
                 case HUNGRY -> hungry();
                 case THINKING -> think();
@@ -73,7 +93,9 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
             }
             sleepAndLive();
         }
-        dieOfHunger();
+        if (!Thread.interrupted()){
+            dieOfHunger();
+        }
     }
 
     /**
@@ -85,7 +107,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
                 Thread.sleep(500);
                 hunger -= 1;
                 if (hunger <= finalHunger/2){
-                    state = State.HUNGRY;
+                    setState(State.HUNGRY);
                 }
             } catch (InterruptedException e) {
                 System.out.println("PEPE sleep failed.");
@@ -121,7 +143,12 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
         food.removeAmountOfFood(amountOfFoodToEat);
         this.hunger += amountOfFoodToEat;
         System.out.println(name + " is eating " + food.getFoodName() + " amount " + amountOfFoodToEat + " " + LocalTime.now());
-        this.state = State.THINKING;
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        setState(State.THINKING);
         this.amountOfTimesEating += 1;
         food.setTaken(false);
         this.food = null;
@@ -190,10 +217,23 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
     }
 
     @Override
-    public void alertObservers() {
-        observers.forEach(obs -> obs.notifyObserver(this));
+    public synchronized void alertObservers() {
+        observers.forEach(obs -> {
+            if (obs instanceof Table){
+                obs.notifyObserver(this);
+            }
+        });
         if (food == null){
             System.out.println(name + " panicks since there is no food available." + " " + LocalTime.now());
         }
+    }
+
+    @Override
+    public void alertObserverAboutStateChange() {
+        this.observers.forEach(observer -> {
+            if (!(observer instanceof Table)){
+                observer.notifyObserverAboutStateChange(philID, state);
+            }
+        });
     }
 }

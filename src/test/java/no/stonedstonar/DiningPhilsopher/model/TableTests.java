@@ -10,6 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
+ * Tests some methods in the table class.
  * @author Steinar Hjelle Midthus
  * @version 0.1
  */
@@ -29,11 +30,11 @@ public class TableTests {
         foods = new LinkedList<>();
         foods.add(new Food(100, "Rice"));
         foods.add(new Food(100, "Apple"));
-        philosopher2 = new Philosopher("Bjarne", 10, false);
-        this.philosopher = new Philosopher("Terje", 10, false);
+        philosopher2 = new Philosopher(1, "Bjarne", 10, false);
+        this.philosopher = new Philosopher(2, "Terje", 10, false);
         philosophers.add(philosopher);
         philosophers.add(this.philosopher2);
-        philosophers.add(new Philosopher("Burt", 10, false));
+        philosophers.add(new Philosopher(3, "Burt", 10, false));
         table = new Table(foods, philosophers);
     }
 
@@ -59,7 +60,7 @@ public class TableTests {
     public void testIfCheckIfPhilosophersBesideIsEatingWorksWithValidInput(){
         try {
             philosopher2.receiveFood(foods.get(0));
-            boolean valid = table.checkIfPhilosophersBesideIsEating(this.philosopher);
+            boolean valid = table.checkIfPhilosophersBesideIsEating(null);
             if (valid){
                 assertTrue(true);
             }else {

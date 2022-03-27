@@ -22,4 +22,9 @@ public interface ObservablePhilosopher {
      * Alerts all the observers.
      */
     void alertObservers();
+
+    /**
+     * Alerts the observers about a new state change.
+     */
+    void alertObserverAboutStateChange();
 }

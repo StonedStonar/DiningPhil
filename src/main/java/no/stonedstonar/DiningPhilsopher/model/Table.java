@@ -1,10 +1,7 @@
 package no.stonedstonar.DiningPhilsopher.model;
 
-import javafx.application.Platform;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -18,43 +15,52 @@ public class Table implements PhilosopherObserver {
 
     private List<Food> foods;
 
+    private Map<LocalTime, Philosopher> deadPhilosopher;
+
     private ExecutorService executorService;
 
     public static void main(String[] args) {
-        List<Philosopher> philosophers = new LinkedList<>();
-        List<Food> foods = new LinkedList<>();
-        foods.add(new Food(400, "Rice"));
-        foods.add(new Food(50, "Apple"));
-        philosophers.add(new Philosopher(1, "Bjarne", 10, false));
-        philosophers.add(new Philosopher(1, "Terje", 10, false));
-        philosophers.add(new Philosopher(1, "Burt", 10, false));
-        Table table = new Table(foods, philosophers);
-        table.addNDummyPhilosophers(4);
+        Table table = new Table(3, 0);
         table.startSimulation();
     }
 
     /**
-     * Makes an instance of the Table class.
-     * @param foods the list of foods.
-     * @param philosophers the list of philosophers.
+     * Makes an empty table ready for GUI use.
+     * @param amount the amount of extra philosophers than 3.
+     * @param delay the amount of delay in milli seconds.
      */
-    public Table(List<Food> foods, List<Philosopher> philosophers) {
-        checkIfObjectIsNull(foods, "foods");
-        checkIfObjectIsNull(philosophers, "philosophers");
-        this.foods = foods;
-        this.philosophers = philosophers;
-        executorService = Executors.newFixedThreadPool(philosophers.size());
+    public Table(int amount, int delay){
+        addNDummyPhilosophers(amount, delay);
+        deadPhilosopher = new HashMap<>();
+    }
+
+    /**
+     * Gets a list of all the philosophers.
+     * @return a list with the philosophers.
+     */
+    public List<Philosopher> getPhilosophers(){
+        return philosophers;
     }
 
     /**
      * Adds N amount of dummy philosophers.
      * @param amountOfN the amount of extra Toms we need.
+     * @param delay the amount of delay in milliseconds.
      */
-    public void addNDummyPhilosophers(int amountOfN){
-        int size = philosophers.size();
-        for (int i = 0; i < 4; i++){
-            philosophers.add(new Philosopher( size + i,"Tom " + i, 10, false));
+    private void addNDummyPhilosophers(int amountOfN, int delay){
+        int foodAmount = amountOfN + 3 + 7;
+        philosophers = new LinkedList<>();
+        foods = new LinkedList<>();
+        foods.add(new Food(400, "Rice"));
+        foods.add(new Food(50, "Apple"));
+        this.philosophers.add(new Philosopher(1, "Bjarne", foodAmount, false, delay));
+        this.philosophers.add(new Philosopher(2, "Terje", foodAmount, false, delay));
+        this.philosophers.add(new Philosopher(3, "Burt", foodAmount, false, delay));
+        long size = this.philosophers.size();
+        for (int i = 1; i <= amountOfN; i++){
+            philosophers.add(new Philosopher( size + i,"Tom " + i, foodAmount, false, delay));
         }
+        executorService = Executors.newFixedThreadPool(this.philosophers.size());
     }
 
     /**
@@ -71,7 +77,7 @@ public class Table implements PhilosopherObserver {
      * Stops the simulation.
      */
     public void stopSimulation(){
-        this.executorService.shutdown();
+        philosophers.forEach(Philosopher::stop);
     }
 
 
@@ -174,7 +180,12 @@ public class Table implements PhilosopherObserver {
 
     @Override
     public void notifyObserverAboutStateChange(long id, State state) {
-
+        if (state == State.DEAD){
+            LocalTime localTime = LocalTime.now();
+            int place = (int) id - 1;
+            Philosopher philosopher = philosophers.get(place);
+            deadPhilosopher.put(localTime, philosopher);
+        }
     }
 
 }

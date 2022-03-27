@@ -2,14 +2,22 @@ package no.stonedstonar.DiningPhilsopher.gui.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import no.stonedstonar.DiningPhilsopher.model.Philosopher;
 import no.stonedstonar.DiningPhilsopher.model.PhilosopherObserver;
 import no.stonedstonar.DiningPhilsopher.model.State;
+import no.stonedstonar.DiningPhilsopher.model.Table;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Steinar Hjelle Midthus
@@ -32,18 +40,29 @@ public class PhilosopherController implements Controller, PhilosopherObserver {
     @FXML
     private VBox philosopherText;
 
+    private Table table;
+
+    private List<VBox> philList;
+
     /**
      * Makes an instance of the PhilosopherController class.
      */
     public PhilosopherController() {
-
+        philList = new ArrayList<>();
     }
 
+    /**
+     * Set all the buttons actions.
+     */
     private void setButtonActions(){
         this.startButton.setOnAction(event -> {
             try{
+                System.out.flush();
                 int amount = getAmount();
-
+                table = new Table(amount, 750);
+                displayTable();
+                startButton.setDisable(true);
+                abortButton.setDisable(false);
             }catch (NumberFormatException numberFormatException){
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Amount");
@@ -56,8 +75,50 @@ public class PhilosopherController implements Controller, PhilosopherObserver {
         this.abortButton.setDisable(true);
 
         this.abortButton.setOnAction(event -> {
-
+            table.stopSimulation();
+            abortButton.setDisable(true);
+            startButton.setDisable(false);
         });
+    }
+
+    /**
+     * Makes the simulation table elements where philosophers are.
+     */
+    private void displayTable(){
+        battleArena.getChildren().clear();
+        List<Philosopher> philosopherList = table.getPhilosophers();
+        for (Philosopher phil : philosopherList) {
+            phil.addObserver(this);
+            VBox vBox = new VBox();
+            vBox.setId(Long.toString(phil.getPhilID()));
+            Label label = new Label(phil.getName());
+            Text text = new Text(phil.getState().toString());
+            text.setStyle("-fx-background-color: yellow;");
+            vBox.getChildren().add(label);
+            vBox.getChildren().add(text);
+            vBox.setPadding(new Insets(10, 10, 10, 10));
+            philList.add(vBox);
+            battleArena.getChildren().add(vBox);
+        }
+        table.startSimulation();
+    }
+
+    private void updatePhil(long id, State state){
+        VBox vBox = (VBox) battleArena.lookup("#" + id);
+        Text textState = (Text) vBox.getChildren().get(1);
+        String status = "";
+        switch (state){
+            case DEAD -> status = "DEAD";
+            case EATING -> status = "EATING";
+            case THINKING -> status = "THINKING";
+            case HUNGRY -> status = "HUNGRY";
+        }
+        textState.setText(status);
+        if (State.EATING == state){
+            textState.setStyle("-fx-background-color: yellow;");
+        }else {
+            textState.setStyle("-fx-background-color: white;");
+        }
     }
 
     /**
@@ -76,7 +137,6 @@ public class PhilosopherController implements Controller, PhilosopherObserver {
 
     /**
      * Checks if a string is of a valid format or not.
-     *
      * @param stringToCheck the string you want to check.
      * @param errorPrefix   the error the exception should have if the string is invalid.
      */
@@ -89,7 +149,6 @@ public class PhilosopherController implements Controller, PhilosopherObserver {
 
     /**
      * Checks if an object is null.
-     *
      * @param object the object you want to check.
      * @param error  the error message the exception should have.
      */
@@ -101,7 +160,7 @@ public class PhilosopherController implements Controller, PhilosopherObserver {
 
     @Override
     public void updateContent() {
-
+        setButtonActions();
     }
 
     @Override
@@ -116,8 +175,6 @@ public class PhilosopherController implements Controller, PhilosopherObserver {
 
     @Override
     public void notifyObserverAboutStateChange(long id, State state) {
-        Platform.runLater(() -> {
-            //Todo: Make edit method and use it here.
-        });
+        Platform.runLater(() -> updatePhil(id, state));
     }
 }

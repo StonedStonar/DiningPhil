@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Steinar Hjelle Midthus
@@ -30,27 +31,39 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
 
     private final Random random;
 
+    private AtomicBoolean atomicBoolean;
+
+    private int delay;
+
     /**
      * Makes an instance of the Philosopher class.
      * @param name the name of the philosopher.
      * @param amountOfFood the state of the hunger right now.
      * @param isRandom <code>true</code> if the starting state should be random.
      *                 <code>false</code> if the starting state should be set.
+     * @param delay the amount of time in milliseconds that the delay should be. 1000 is one second.
      */
-    public Philosopher(long philID,String name, int amountOfFood, boolean isRandom) {
+    public Philosopher(long philID,String name, int amountOfFood, boolean isRandom, int delay) {
         checkString(name, "name");
+        observers = new LinkedList<>();
         this.philID = philID;
         this.name = name;
         random = new Random();
         if (isRandom){
             this.hunger = random.nextInt(amountOfFood/2, amountOfFood);
         }else {
-            this.hunger = 5;
+            this.hunger = amountOfFood/2;
         }
         this.finalHunger = amountOfFood;
         setState(State.THINKING);
         amountOfTimesEating = 0;
-        observers = new LinkedList<>();
+        atomicBoolean = new AtomicBoolean();
+        atomicBoolean.set(false);
+        this.delay = delay;
+    }
+
+    public void stop(){
+        this.atomicBoolean.set(true);
     }
 
     /**
@@ -58,8 +71,10 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
      * @param state the new state.
      */
     private void setState(State state){
-        this.state = state;
-        alertObserverAboutStateChange();
+        if (state != this.state && this.state != State.DEAD){
+            this.state = state;
+            alertObserverAboutStateChange();
+        }
     }
 
     /**
@@ -85,7 +100,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
      * Represents a method that starts the philosopher. Switches between eating, thinking and hungry.
      */
     public void startPhilosopher(){
-        while(hunger > 0 && !Thread.interrupted()){
+        while(hunger > 0 && !atomicBoolean.get()){
             switch (state){
                 case HUNGRY -> hungry();
                 case THINKING -> think();
@@ -93,7 +108,9 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
             }
             sleepAndLive();
         }
-        if (!Thread.interrupted()){
+        if (atomicBoolean.get()){
+            System.out.println(name + " aborted.");
+        }else {
             dieOfHunger();
         }
     }
@@ -102,9 +119,9 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
      * Makes the thread "sleep" and loose hunger. If the state is not set to "eating"
      */
     public void sleepAndLive(){
-        if (state != State.EATING){
+        if (state != State.EATING && !atomicBoolean.get()){
             try {
-                Thread.sleep(500);
+                sleep();
                 hunger -= 1;
                 if (hunger <= finalHunger/2){
                     setState(State.HUNGRY);
@@ -112,7 +129,17 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
             } catch (InterruptedException e) {
                 System.out.println("PEPE sleep failed.");
             }
+
         }
+    }
+
+    /**
+     * Just makes the thread sleep.
+     * @throws InterruptedException if the thread was interrupted.
+     */
+    private void sleep() throws InterruptedException{
+        Thread.sleep(delay);
+
     }
 
     /**
@@ -144,7 +171,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
         this.hunger += amountOfFoodToEat;
         System.out.println(name + " is eating " + food.getFoodName() + " amount " + amountOfFoodToEat + " " + LocalTime.now());
         try {
-            Thread.sleep(500);
+            sleep();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -173,6 +200,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
      */
     private void dieOfHunger(){
         System.err.println(name + " has died of starvation. \nBut ate " + amountOfTimesEating + " times." + " " + LocalTime.now());
+        setState(State.DEAD);
         observers.clear();
     }
 
@@ -217,7 +245,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
     }
 
     @Override
-    public synchronized void alertObservers() {
+    public void alertObservers() {
         observers.forEach(obs -> {
             if (obs instanceof Table){
                 obs.notifyObserver(this);
@@ -229,7 +257,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
     }
 
     @Override
-    public void alertObserverAboutStateChange() {
+    public synchronized void alertObserverAboutStateChange() {
         this.observers.forEach(observer -> {
             if (!(observer instanceof Table)){
                 observer.notifyObserverAboutStateChange(philID, state);

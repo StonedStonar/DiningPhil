@@ -20,5 +20,10 @@ public enum State {
     /**
      * Is done when one is in the act of eating.
      */
-    EATING
+    EATING,
+
+    /**
+     * You know what this state indicates
+     */
+    DEAD
 }

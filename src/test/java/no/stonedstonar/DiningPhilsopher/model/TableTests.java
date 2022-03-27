@@ -30,12 +30,11 @@ public class TableTests {
         foods = new LinkedList<>();
         foods.add(new Food(100, "Rice"));
         foods.add(new Food(100, "Apple"));
-        philosopher2 = new Philosopher(1, "Bjarne", 10, false);
-        this.philosopher = new Philosopher(2, "Terje", 10, false);
+        philosopher2 = new Philosopher(1, "Bjarne", 10, false, 750);
+        this.philosopher = new Philosopher(2, "Terje", 10, false, 750);
         philosophers.add(philosopher);
         philosophers.add(this.philosopher2);
-        philosophers.add(new Philosopher(3, "Burt", 10, false));
-        table = new Table(foods, philosophers);
+        philosophers.add(new Philosopher(3, "Burt", 10, false,750));
     }
 
     /**

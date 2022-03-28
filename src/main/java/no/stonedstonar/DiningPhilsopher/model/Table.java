@@ -173,9 +173,7 @@ public class Table implements PhilosopherObserver {
 
     @Override
     public void notifyObserver(Philosopher philosopher) {
-        synchronized (Table.class){
-            handlePhilosopherAskingForFood(philosopher);
-        }
+        handlePhilosopherAskingForFood(philosopher);
     }
 
     @Override

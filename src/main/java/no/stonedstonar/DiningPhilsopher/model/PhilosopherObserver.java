@@ -10,7 +10,7 @@ public interface PhilosopherObserver {
      * Notifies the observer about the new state.
      * @param philosopher the philosopher object
      */
-    void  notifyObserver(Philosopher philosopher);
+    void notifyObserver(Philosopher philosopher);
 
     /**
      * Notifies an observer about a state change.

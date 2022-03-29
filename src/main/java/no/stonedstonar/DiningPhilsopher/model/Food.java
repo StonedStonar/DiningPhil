@@ -20,7 +20,7 @@ public class Food {
         checkString(foodName, "food name");
         this.foodName = foodName;
         this.amountOfFood = amountOfFood;
-        this.taken = false;
+        taken = false;
     }
 
     /**

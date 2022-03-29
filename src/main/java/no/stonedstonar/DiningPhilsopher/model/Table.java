@@ -1,5 +1,7 @@
 package no.stonedstonar.DiningPhilsopher.model;
 
+import javafx.scene.control.Tab;
+
 import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -20,7 +22,7 @@ public class Table implements PhilosopherObserver {
     private ExecutorService executorService;
 
     public static void main(String[] args) {
-        Table table = new Table(3, 0);
+        Table table = new Table(3, 10);
         table.startSimulation();
     }
 
@@ -48,7 +50,7 @@ public class Table implements PhilosopherObserver {
      * @param delay the amount of delay in milliseconds.
      */
     private void addNDummyPhilosophers(int amountOfN, int delay){
-        int foodAmount = amountOfN + 3 + 7;
+        int foodAmount = amountOfN + 10;
         philosophers = new LinkedList<>();
         foods = new LinkedList<>();
         foods.add(new Food(400, "Rice"));
@@ -85,22 +87,26 @@ public class Table implements PhilosopherObserver {
      * Handles the philosophers asking for food.
      * @param philosopher the philosopher to handle.
      */
-    public synchronized void handlePhilosopherAskingForFood(Philosopher philosopher){
-        List<Philosopher> philosopherList = getPhilosophersOnTheSide(philosopher);
-        if (!checkIfPhilosophersBesideIsEating(philosopherList)){
-            serveFood(philosopher);
+    public void handlePhilosopherAskingForFood(Philosopher philosopher){
+        if (checkIfTableHasFood()){
+            List<Philosopher> philosopherList = getPhilosophersOnTheSide(philosopher);
+            if (!checkIfPhilosophersBesideIsEating(philosopherList)){
+                serveFood(philosopher);
+            }else {
+                StringBuilder stringBuilder = new StringBuilder();
+                philosopherList.stream().filter(philosopher1 -> philosopher1.getState() == State.EATING).forEach(philosopher1 -> {
+                    if (!stringBuilder.isEmpty()){
+                        stringBuilder.append(", ");
+                    }
+                    stringBuilder.append(philosopher1.getName());
+                });
+                stringBuilder.append(" beside ");
+                stringBuilder.append(philosopher.getName());
+                stringBuilder.append(" is eating.");
+                System.err.println(stringBuilder.toString());
+            }
         }else {
-            StringBuilder stringBuilder = new StringBuilder();
-            philosopherList.stream().filter(philosopher1 -> philosopher1.getState() == State.EATING).forEach(philosopher1 -> {
-                if (!stringBuilder.isEmpty()){
-                    stringBuilder.append(", ");
-                }
-                stringBuilder.append(philosopher1.getName());
-            });
-            stringBuilder.append(" beside ");
-            stringBuilder.append(philosopher.getName());
-            stringBuilder.append(" is eating.");
-            System.err.println(stringBuilder.toString());
+            philosopher.dieOfHunger();
         }
     }
 
@@ -148,15 +154,12 @@ public class Table implements PhilosopherObserver {
     }
 
     /**
-     * Checks if a string is of a valid format or not.
-     * @param stringToCheck the string you want to check.
-     * @param errorPrefix   the error the exception should have if the string is invalid.
+     * Checks if the table has food.
+     * @return <code>true</code> if there is still food available.
+     *         <code>false</code> if there is no food available.
      */
-    private void checkString(String stringToCheck, String errorPrefix) {
-        checkIfObjectIsNull(stringToCheck, errorPrefix);
-        if (stringToCheck.isEmpty()) {
-            throw new IllegalArgumentException("The " + errorPrefix + " cannot be empty.");
-        }
+    private boolean checkIfTableHasFood(){
+        return !foods.stream().allMatch(food -> food.getAmountOfFood() == 0);
     }
 
     /**
@@ -185,5 +188,4 @@ public class Table implements PhilosopherObserver {
             deadPhilosopher.put(localTime, philosopher);
         }
     }
-
 }

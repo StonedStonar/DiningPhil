@@ -1,6 +1,5 @@
 package no.stonedstonar.DiningPhilsopher.model;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,11 +22,11 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
 
     private State state;
 
+    private Food food;
+
     private int amountOfTimesEating;
 
     private List<PhilosopherObserver> observers;
-
-    private Food food;
 
     private final Random random;
 
@@ -52,7 +51,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
         if (isRandom){
             this.hunger = random.nextInt(amountOfFood/2, amountOfFood);
         }else {
-            this.hunger = amountOfFood/2;
+            this.hunger = amountOfFood;
         }
         this.finalHunger = amountOfFood;
         setState(State.THINKING);
@@ -60,6 +59,17 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
         atomicBoolean = new AtomicBoolean();
         atomicBoolean.set(false);
         this.delay = delay;
+    }
+
+    /**
+     * Receives food from a source.
+     * @param food the food to eat.
+     */
+    public void receiveFood(Food food){
+        checkIfObjectIsNull(food, "food");
+        setState(State.EATING);
+        this.food = food;
+        System.out.println(name + " got " + food.getFoodName() + " " + LocalTime.now());
     }
 
     public void stop(){
@@ -86,32 +96,21 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
     }
 
     /**
-     * Receives food from the table.
-     * @param food the food to receive.
-     */
-    public void receiveFood(Food food){
-        checkIfObjectIsNull(food, "food");
-        System.out.println(name + " got " + food.getFoodName() + " " + LocalTime.now());
-        this.food = food;
-        setState(State.EATING);
-    }
-
-    /**
      * Represents a method that starts the philosopher. Switches between eating, thinking and hungry.
      */
     public void startPhilosopher(){
-        while(hunger > 0 && !atomicBoolean.get()){
+        while(!atomicBoolean.get()){
             switch (state){
                 case HUNGRY -> hungry();
                 case THINKING -> think();
                 case EATING -> eat();
             }
-            sleepAndLive();
+            if (State.EATING != state){
+                sleepAndLive();
+            }
         }
         if (atomicBoolean.get()){
             System.out.println(name + " aborted.");
-        }else {
-            dieOfHunger();
         }
     }
 
@@ -192,14 +191,19 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
      * The physical act of asking for food.
      */
     private void hungry(){
+        int priority = Thread.MIN_PRIORITY;
+        if (hunger < finalHunger/2){
+            priority = Thread.MAX_PRIORITY;
+        }
+        Thread.currentThread().setPriority(priority);
         alertObservers();
     }
 
     /**
      * The physical act of dying of hunger.
      */
-    private void dieOfHunger(){
-        System.err.println(name + " has died of starvation. \nBut ate " + amountOfTimesEating + " times." + " " + LocalTime.now());
+    public void dieOfHunger(){
+        System.err.println(name + " has died of starvation. But ate " + amountOfTimesEating + " times." + " " + LocalTime.now());
         setState(State.DEAD);
         observers.clear();
     }
@@ -246,18 +250,21 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
 
     @Override
     public void alertObservers() {
-        observers.forEach(obs -> {
-            if (obs instanceof Table){
-                obs.notifyObserver(this);
+        synchronized (Philosopher.class){
+            observers.forEach(obs -> {
+                if (obs instanceof Table){
+                    obs.notifyObserver(this);
+                }
+            });
+            if (food == null){
+                System.out.println(name + " panicks since there is no food available." + " " + LocalTime.now());
             }
-        });
-        if (food == null){
-            System.out.println(name + " panicks since there is no food available." + " " + LocalTime.now());
         }
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
     }
 
     @Override
-    public synchronized void alertObserverAboutStateChange() {
+    public void alertObserverAboutStateChange() {
         this.observers.forEach(observer -> {
             if (!(observer instanceof Table)){
                 observer.notifyObserverAboutStateChange(philID, state);

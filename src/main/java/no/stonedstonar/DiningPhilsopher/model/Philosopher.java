@@ -1,16 +1,20 @@
 package no.stonedstonar.DiningPhilsopher.model;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ *
  * @author Steinar Hjelle Midthus
  * @version 0.1
  */
-public class Philosopher implements Runnable, ObservablePhilosopher {
+public class Philosopher implements Runnable, ObservablePhilosopher{
+
+    private static List<String> messageLog = new ArrayList<>();
 
     private long philID;
 
@@ -62,6 +66,26 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
     }
 
     /**
+     * Adds a new message to the message list.
+     * @param message the new message.
+     */
+    private static void addMessage(String message){
+        synchronized (Philosopher.class){
+            synchronized (messageLog){
+                messageLog.add(message);
+            }
+        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static List<String> getMessageLog(){
+        return messageLog;
+    }
+
+    /**
      * Receives food from a source.
      * @param food the food to eat.
      */
@@ -69,7 +93,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
         checkIfObjectIsNull(food, "food");
         setState(State.EATING);
         this.food = food;
-        System.out.println(name + " got " + food.getFoodName() + " " + LocalTime.now());
+        addMessage(name + " got " + food.getFoodName() + " " + LocalTime.now());
     }
 
     public void stop(){
@@ -85,6 +109,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
             this.state = state;
             alertObserverAboutStateChange();
         }
+
     }
 
     /**
@@ -104,13 +129,11 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
                 case HUNGRY -> hungry();
                 case THINKING -> think();
                 case EATING -> eat();
-            }
-            if (State.EATING != state){
-                sleepAndLive();
+                default -> sleepAndLive();
             }
         }
         if (atomicBoolean.get()){
-            System.out.println(name + " aborted.");
+            addMessage(name + " aborted.");
         }
     }
 
@@ -168,7 +191,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
         }
         food.removeAmountOfFood(amountOfFoodToEat);
         this.hunger += amountOfFoodToEat;
-        System.out.println(name + " is eating " + food.getFoodName() + " amount " + amountOfFoodToEat + " " + LocalTime.now());
+        addMessage(name + " is eating " + food.getFoodName() + " amount " + amountOfFoodToEat + " " + LocalTime.now());
         try {
             sleep();
         } catch (InterruptedException e) {
@@ -184,7 +207,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
      * The physical act of thinking.
      */
     private void think(){
-        System.out.println(name + " is thinking about life and space." + " " + LocalTime.now());
+        addMessage(name + " is thinking about life and space." + " " + LocalTime.now());
     }
 
     /**
@@ -257,7 +280,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher {
                 }
             });
             if (food == null){
-                System.out.println(name + " panicks since there is no food available." + " " + LocalTime.now());
+                addMessage(name + " panicks since there is no food available." + " " + LocalTime.now());
             }
         }
         Thread.currentThread().setPriority(Thread.MIN_PRIORITY);

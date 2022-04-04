@@ -107,6 +107,11 @@ public class Table implements PhilosopherObserver {
             }
         }else {
             philosopher.dieOfHunger();
+            if (philosophers.stream().allMatch(philosopher1 -> philosopher1.getState() == State.DEAD)){
+                executorService.shutdown();
+                List<String> messages = Philosopher.getMessageLog();
+                messages.forEach(System.out::println);
+            }
         }
     }
 

@@ -6,6 +6,9 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Steinar Hjelle Midthus
@@ -21,9 +24,23 @@ public class Table implements PhilosopherObserver {
 
     private ExecutorService executorService;
 
+    private final Logger logger;
+
     public static void main(String[] args) {
-        Table table = new Table(3, 10);
+        //Table.setConsole();
+        Philosopher.setConsole();
+        Table table = new Table(3, 50);
         table.startSimulation();
+    }
+
+    /**
+     * Used to make the logger messages in the console visible.
+     */
+    public static void setConsole(){
+        Logger logger = Logger.getLogger(Table.class.getName());
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        logger.addHandler(handler);
     }
 
     /**
@@ -34,6 +51,7 @@ public class Table implements PhilosopherObserver {
     public Table(int amount, int delay){
         addNDummyPhilosophers(amount, delay);
         deadPhilosopher = new HashMap<>();
+        this.logger = Logger.getLogger(getClass().getName());
     }
 
     /**
@@ -50,11 +68,11 @@ public class Table implements PhilosopherObserver {
      * @param delay the amount of delay in milliseconds.
      */
     private void addNDummyPhilosophers(int amountOfN, int delay){
-        int foodAmount = amountOfN + 10;
+        int foodAmount = amountOfN * 15;
         philosophers = new LinkedList<>();
         foods = new LinkedList<>();
-        foods.add(new Food(400, "Rice"));
-        foods.add(new Food(50, "Apple"));
+        foods.add(new Food(2000, "Rice"));
+        foods.add(new Food(1000, "Apple"));
         this.philosophers.add(new Philosopher(1, "Bjarne", foodAmount, false, delay));
         this.philosophers.add(new Philosopher(2, "Terje", foodAmount, false, delay));
         this.philosophers.add(new Philosopher(3, "Burt", foodAmount, false, delay));
@@ -79,7 +97,7 @@ public class Table implements PhilosopherObserver {
      * Stops the simulation.
      */
     public void stopSimulation(){
-        philosophers.forEach(Philosopher::stop);
+        executorService.shutdown();
     }
 
 
@@ -103,14 +121,12 @@ public class Table implements PhilosopherObserver {
                 stringBuilder.append(" beside ");
                 stringBuilder.append(philosopher.getName());
                 stringBuilder.append(" is eating.");
-                System.err.println(stringBuilder.toString());
+                String warning = stringBuilder.toString();
+                logger.log(Level.WARNING, warning);
             }
         }else {
-            philosopher.dieOfHunger();
             if (philosophers.stream().allMatch(philosopher1 -> philosopher1.getState() == State.DEAD)){
-                executorService.shutdown();
-                List<String> messages = Philosopher.getMessageLog();
-                messages.forEach(System.out::println);
+                stopSimulation();
             }
         }
     }

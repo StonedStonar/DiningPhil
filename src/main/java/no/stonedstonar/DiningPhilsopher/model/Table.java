@@ -29,7 +29,7 @@ public class Table implements PhilosopherObserver {
     /**
      * Makes an empty table ready for GUI use.
      * @param amount the amount of extra philosophers than 3.
-     * @param delay the amount of delay in milli seconds.
+     * @param delay the amount of delay in milli-seconds.
      */
     public Table(int amount, int delay){
         addNDummyPhilosophers(amount, delay);
@@ -169,7 +169,6 @@ public class Table implements PhilosopherObserver {
 
     /**
      * Checks if an object is null.
-     *
      * @param object the object you want to check.
      * @param error  the error message the exception should have.
      */

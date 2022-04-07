@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.LockSupport;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -14,8 +15,6 @@ import java.util.concurrent.locks.LockSupport;
  * @version 0.1
  */
 public class Philosopher implements Runnable, ObservablePhilosopher{
-
-    private static List<String> messageLog = new ArrayList<>();
 
     private long philID;
 
@@ -35,9 +34,9 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
 
     private final Random random;
 
-    private AtomicBoolean atomicBoolean;
-
     private int delay;
+
+    private Logger logger;
 
     /**
      * Makes an instance of the Philosopher class.
@@ -49,10 +48,10 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
      */
     public Philosopher(long philID,String name, int amountOfFood, boolean isRandom, int delay) {
         checkString(name, "name");
-        observers = new LinkedList<>();
+        this.observers = new LinkedList<>();
         this.philID = philID;
         this.name = name;
-        random = new Random();
+        this.random = new Random();
         if (isRandom){
             this.hunger = random.nextInt(amountOfFood/2, amountOfFood);
         }else {
@@ -60,30 +59,20 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
         }
         this.finalHunger = amountOfFood;
         setState(State.THINKING);
-        amountOfTimesEating = 0;
-        atomicBoolean = new AtomicBoolean();
-        atomicBoolean.set(false);
+        this.amountOfTimesEating = 0;
         this.delay = delay;
+        this.logger = Logger.getLogger(getClass().getName());
     }
 
     /**
-     * Adds a new message to the message list.
-     * @param message the new message.
+     * Used to make the logger messages in the console visible.
      */
-    private static void addMessage(String message){
-        synchronized (Philosopher.class){
-            synchronized (messageLog){
-                messageLog.add(message);
-            }
-        }
-    }
-
-    /**
-     *
-     * @return
-     */
-    public static List<String> getMessageLog(){
-        return messageLog;
+    public static void setConsole(){
+        Logger logger = Logger.getLogger(Philosopher.class.getName());
+        logger.setUseParentHandlers(false);
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        logger.addHandler(handler);
     }
 
     /**
@@ -94,11 +83,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
         checkIfObjectIsNull(food, "food");
         setState(State.EATING);
         this.food = food;
-        addMessage(name + " got " + food.getFoodName() + " " + LocalTime.now());
-    }
-
-    public void stop(){
-        this.atomicBoolean.set(true);
+        logger.log(Level.FINE, "{0} got {1} {2}", new String[]{name, food.getFoodName(), LocalTime.now().toString()});
     }
 
     /**
@@ -125,16 +110,18 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
      * Represents a method that starts the philosopher. Switches between eating, thinking and hungry.
      */
     public void startPhilosopher(){
-        while(!atomicBoolean.get()){
+        while(!Thread.interrupted() && hunger > 0){
             switch (state){
                 case HUNGRY -> hungry();
                 case THINKING -> think();
                 case EATING -> eat();
-                default -> sleepAndLive();
             }
+            sleepAndLive();
         }
-        if (atomicBoolean.get()){
-            addMessage(name + " aborted.");
+        if (Thread.interrupted()){
+            logger.log(Level.INFO, "{0} aborted execution.", name);
+        }else {
+            dieOfHunger();
         }
     }
 
@@ -142,7 +129,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
      * Makes the thread "sleep" and loose hunger. If the state is not set to "eating"
      */
     public void sleepAndLive(){
-        if (state != State.EATING && !atomicBoolean.get()){
+        if (state != State.EATING && !Thread.interrupted()){
             try {
                 sleep();
                 hunger -= 1;
@@ -192,7 +179,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
         }
         food.removeAmountOfFood(amountOfFoodToEat);
         this.hunger += amountOfFoodToEat;
-        addMessage(name + " is eating " + food.getFoodName() + " amount " + amountOfFoodToEat + " " + LocalTime.now());
+        logger.log(Level.FINE, "{0} is eating {1} amount {2} {3}", new String[]{name, food.getFoodName(), Integer.toString(amountOfFoodToEat),getTimeAsString() });
         try {
             sleep();
         } catch (InterruptedException e) {
@@ -208,7 +195,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
      * The physical act of thinking.
      */
     private void think(){
-        addMessage(name + " is thinking about life and space." + " " + LocalTime.now());
+        logger.log(Level.FINE, "{0} is thinking about life and space. {1}", new String[]{name, getTimeAsString()});
     }
 
     /**
@@ -227,9 +214,17 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
      * The physical act of dying of hunger.
      */
     public void dieOfHunger(){
-        System.err.println(name + " has died of starvation. But ate " + amountOfTimesEating + " times." + " " + LocalTime.now());
+        logger.log(Level.INFO, "{0} has died of starvation. But ate {1} times. {2}", new String[]{name, Integer.toString(amountOfTimesEating), getTimeAsString()});
         setState(State.DEAD);
         observers.clear();
+    }
+
+    /**
+     * Gets the current time as a string.
+     * @return the time right now.
+     */
+    private String getTimeAsString(){
+        return LocalTime.now().toString();
     }
 
     /**
@@ -281,7 +276,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
                 }
             });
             if (food == null){
-                addMessage(name + " panicks since there is no food available." + " " + LocalTime.now());
+                logger.log(Level.INFO, "{0} panicks since there is no food available. {1}", new String[]{name, getTimeAsString()});
             }
         }
         Thread.currentThread().setPriority(Thread.MIN_PRIORITY);

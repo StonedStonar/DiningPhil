@@ -5,14 +5,14 @@ module dining {
     requires javafx.graphics;
     requires java.logging;
 
-    opens no.stonedstonar.DiningPhilsopher.gui.controller to javafx.fxml, javafx.graphics;
-    opens no.stonedstonar.DiningPhilsopher.gui.window to javafx.graphics, javafx.fxml;
-    opens no.stonedstonar.DiningPhilsopher.gui to javafx.fxml, javafx.graphics;
-    opens no.stonedstonar.DiningPhilsopher.model to javafx.graphics, javafx.fxml;
+    opens no.os.DiningPhilsopher.gui.controller to javafx.graphics, javafx.fxml;
+    opens no.os.DiningPhilsopher.gui.window to javafx.fxml, javafx.graphics;
+    opens no.os.DiningPhilsopher.model to javafx.graphics, javafx.fxml;
+    opens no.os.DiningPhilsopher.gui to javafx.fxml, javafx.graphics;
 
-    exports no.stonedstonar.DiningPhilsopher.gui.controller;
-    exports no.stonedstonar.DiningPhilsopher.gui.window;
-    exports no.stonedstonar.DiningPhilsopher.model;
-    exports no.stonedstonar.DiningPhilsopher.gui;
+    exports no.os.DiningPhilsopher.gui.controller;
+    exports no.os.DiningPhilsopher.gui.window;
+    exports no.os.DiningPhilsopher.model;
+    exports no.os.DiningPhilsopher.gui;
 
 }

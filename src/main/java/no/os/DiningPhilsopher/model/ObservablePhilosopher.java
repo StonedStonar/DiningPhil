@@ -1,4 +1,4 @@
-package no.stonedstonar.DiningPhilsopher.model;
+package no.os.DiningPhilsopher.model;
 
 /**
  * @author Steinar Hjelle Midthus

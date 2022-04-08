@@ -1,4 +1,4 @@
-package no.stonedstonar.DiningPhilsopher.model;
+package no.os.DiningPhilsopher.model;
 
 /**
  * Represents an enum that shows the hunger state of a person.

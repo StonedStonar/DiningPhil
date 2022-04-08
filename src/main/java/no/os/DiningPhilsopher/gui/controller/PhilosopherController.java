@@ -1,4 +1,4 @@
-package no.stonedstonar.DiningPhilsopher.gui.controller;
+package no.os.DiningPhilsopher.gui.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -10,17 +10,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import no.stonedstonar.DiningPhilsopher.model.Philosopher;
-import no.stonedstonar.DiningPhilsopher.model.PhilosopherObserver;
-import no.stonedstonar.DiningPhilsopher.model.State;
-import no.stonedstonar.DiningPhilsopher.model.Table;
+import no.os.DiningPhilsopher.model.Philosopher;
+import no.os.DiningPhilsopher.model.PhilosopherObserver;
+import no.os.DiningPhilsopher.model.State;
+import no.os.DiningPhilsopher.model.Table;
+
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
- * @author Steinar Hjelle Midthus
+ * Represents the controller for the philosophers.
+ * @author Group 13
  * @version 0.1
  */
 public class PhilosopherController implements Controller, PhilosopherObserver {
@@ -60,10 +61,12 @@ public class PhilosopherController implements Controller, PhilosopherObserver {
                 System.out.flush();
                 int amount = getAmount();
                 table = new Table(amount, 750);
+                Philosopher.setConsole();
+                Table.setConsole();
                 displayTable();
                 startButton.setDisable(true);
                 abortButton.setDisable(false);
-            }catch (NumberFormatException numberFormatException){
+            }catch (IllegalArgumentException numberFormatException){
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Amount");
                 alert.setHeaderText("Amount cannot be a string");
@@ -129,6 +132,7 @@ public class PhilosopherController implements Controller, PhilosopherObserver {
     private int getAmount() throws NumberFormatException{
         int amount = 0;
         String text = amountField.textProperty().get();
+        checkString(text, "text");
         if (!text.isEmpty()){
             amount = Integer.parseInt(text);
         }

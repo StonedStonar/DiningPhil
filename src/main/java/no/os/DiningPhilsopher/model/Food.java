@@ -1,7 +1,7 @@
-package no.stonedstonar.DiningPhilsopher.model;
+package no.os.DiningPhilsopher.model;
 
 /**
- * @author Steinar Hjelle Midthus
+ * @author Group 15
  * @version 0.1
  */
 public class Food {

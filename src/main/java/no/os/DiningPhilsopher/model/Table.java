@@ -1,4 +1,4 @@
-package no.stonedstonar.DiningPhilsopher.model;
+package no.os.DiningPhilsopher.model;
 
 import javafx.scene.control.Tab;
 
@@ -27,6 +27,7 @@ public class Table implements PhilosopherObserver {
 
     private final Logger logger;
 
+    //Todo: Launch me for faster simulation.
     public static void main(String[] args) {
         Table table = new Table(3, 50);
         Table.setConsole();
@@ -73,7 +74,12 @@ public class Table implements PhilosopherObserver {
      * @param delay the amount of delay in milliseconds.
      */
     private void addNDummyPhilosophers(int amountOfN, int delay){
-        int foodAmount = amountOfN * 15;
+        int foodAmount = 0;
+        if (delay < 500 || amountOfN > 3){
+            foodAmount = amountOfN * 10;
+        }else {
+            foodAmount = 10;
+        }
         philosophers = new LinkedList<>();
         foods = new LinkedList<>();
         foods.add(new Food(2000, "Rice"));
@@ -99,7 +105,7 @@ public class Table implements PhilosopherObserver {
      * Stops the simulation.
      */
     public void stopSimulation(){
-        executorService.shutdown();
+        executorService.shutdownNow();
     }
 
 

@@ -1,7 +1,7 @@
-package no.stonedstonar.DiningPhilsopher.gui.window;
+package no.os.DiningPhilsopher.gui.window;
 
 import javafx.scene.Scene;
-import no.stonedstonar.DiningPhilsopher.gui.controller.Controller;
+import no.os.DiningPhilsopher.gui.controller.Controller;
 
 /**
  * Represents the basic methods a window should have.

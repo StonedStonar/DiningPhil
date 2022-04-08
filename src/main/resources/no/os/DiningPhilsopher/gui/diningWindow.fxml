@@ -10,8 +10,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <top>
       <Label text="Dining philosophers problem" BorderPane.alignment="CENTER">
          <font>
@@ -30,7 +29,7 @@
             <HBox fx:id="battleArena" alignment="CENTER" prefHeight="168.0" prefWidth="461.0" />
             <VBox prefHeight="38.0" prefWidth="461.0">
                <children>
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="There is by default three philosophers in the list. If you enter a value in the text field this will be in additon to the original three. Their names will be &quot;Tom n&quot;" wrappingWidth="460.62109375" />
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text=" Their names will be &quot;Tom n&quot;" wrappingWidth="460.62109375" />
                </children>
             </VBox>
             <Label text="Amount of philosophers">
@@ -54,14 +53,6 @@
       </VBox>
    </center>
    <left>
-      <VBox fx:id="philosopherText" prefHeight="383.0" prefWidth="139.0" BorderPane.alignment="CENTER">
-         <children>
-            <Label prefWidth="139.0" text="Actions log">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-         </children>
-      </VBox>
+      <VBox fx:id="philosopherText" prefHeight="383.0" prefWidth="139.0" BorderPane.alignment="CENTER" />
    </left>
 </BorderPane>

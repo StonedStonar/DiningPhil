@@ -1,5 +1,8 @@
-package no.stonedstonar.DiningPhilsopher.model;
+package no.os.DiningPhilsopher.model;
 
+import no.os.DiningPhilsopher.model.Food;
+import no.os.DiningPhilsopher.model.Philosopher;
+import no.os.DiningPhilsopher.model.Table;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package no.stonedstonar.DiningPhilsopher.gui.controller;
+package no.os.DiningPhilsopher.gui.controller;
 
 /**
  * Represents a general controller that is used in the loading and acting in a scene.

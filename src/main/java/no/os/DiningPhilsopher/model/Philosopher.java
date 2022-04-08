@@ -1,4 +1,4 @@
-package no.stonedstonar.DiningPhilsopher.model;
+package no.os.DiningPhilsopher.model;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -10,8 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
- * @author Steinar Hjelle Midthus
+ * A class that represents a philosopher
+ * @author Group 15
  * @version 0.1
  */
 public class Philosopher implements Runnable, ObservablePhilosopher{
@@ -73,6 +73,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(Level.ALL);
         logger.addHandler(handler);
+        logger.setLevel(Level.ALL);
     }
 
     /**
@@ -110,34 +111,33 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
      * Represents a method that starts the philosopher. Switches between eating, thinking and hungry.
      */
     public void startPhilosopher(){
-        while(!Thread.interrupted() && hunger > 0){
-            switch (state){
-                case HUNGRY -> hungry();
-                case THINKING -> think();
-                case EATING -> eat();
+        try {
+            while(!Thread.interrupted() && hunger > 0){
+                switch (state){
+                    case HUNGRY -> hungry();
+                    case THINKING -> think();
+                    case EATING -> eat();
+                }
+                sleepAndLive();
             }
-            sleepAndLive();
-        }
-        if (Thread.interrupted()){
+        }catch (InterruptedException exception){
             logger.log(Level.INFO, "{0} aborted execution.", name);
-        }else {
+        }
+        if (hunger <= 0){
             dieOfHunger();
         }
     }
 
     /**
      * Makes the thread "sleep" and loose hunger. If the state is not set to "eating"
+     * @throws InterruptedException gets thrown if the tread is interruped.
      */
-    public void sleepAndLive(){
+    public void sleepAndLive() throws InterruptedException {
         if (state != State.EATING && !Thread.interrupted()){
-            try {
-                sleep();
-                hunger -= 1;
-                if (hunger <= finalHunger/2){
-                    setState(State.HUNGRY);
-                }
-            } catch (InterruptedException e) {
-                System.out.println("PEPE sleep failed.");
+            sleep();
+            hunger -= 1;
+            if (hunger <= finalHunger/2){
+                setState(State.HUNGRY);
             }
 
         }
@@ -170,8 +170,9 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
 
     /**
      * The physical act of eating.
+     * @throws  InterruptedException gets thrown if the thread is interrupted.
      */
-    public void eat(){
+    public void eat() throws InterruptedException {
         int amountOfFoodToEat = finalHunger - hunger;
         int remainingFood = food.getAmountOfFood();
         if (amountOfFoodToEat > remainingFood){
@@ -180,11 +181,7 @@ public class Philosopher implements Runnable, ObservablePhilosopher{
         food.removeAmountOfFood(amountOfFoodToEat);
         this.hunger += amountOfFoodToEat;
         logger.log(Level.FINE, "{0} is eating {1} amount {2} {3}", new String[]{name, food.getFoodName(), Integer.toString(amountOfFoodToEat),getTimeAsString() });
-        try {
-            sleep();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        sleep();
         setState(State.THINKING);
         this.amountOfTimesEating += 1;
         food.setTaken(false);

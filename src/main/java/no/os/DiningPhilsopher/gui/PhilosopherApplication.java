@@ -1,19 +1,21 @@
-package no.stonedstonar.DiningPhilsopher.gui;
+package no.os.DiningPhilsopher.gui;
+
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import no.stonedstonar.DiningPhilsopher.gui.controller.Controller;
-import no.stonedstonar.DiningPhilsopher.gui.window.PhilosopherWindow;
-import no.stonedstonar.DiningPhilsopher.gui.window.Window;
-import no.stonedstonar.DiningPhilsopher.model.Table;
+import no.os.DiningPhilsopher.gui.controller.Controller;
+import no.os.DiningPhilsopher.gui.window.PhilosopherWindow;
+import no.os.DiningPhilsopher.gui.window.Window;
+import no.os.DiningPhilsopher.model.Table;
+
 
 import java.io.IOException;
 
 /**
  * Represents the loading of Philosopher Application.
- * @author Steinar Hjelle Midthus
+ * @author Group 13
  * @version 0.1
  */
 public class PhilosopherApplication extends Application {
